@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from cosmology.api import FLRWAPIConformantWrapper
+from cosmology.api import FLRWCosmologyWrapperAPI
 from cosmology.compat.camb import constants
 from cosmology.compat.camb.core import CAMBCosmology
 from typing_extensions import TypeAlias
@@ -25,7 +25,7 @@ _MPCGYR_KMS = np.array("9.7309928209912e35", dtype=np.float64)  # [Mpc / km]
 
 
 @dataclass(frozen=True)
-class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
+class CAMBFLRW(CAMBCosmology, FLRWCosmologyWrapperAPI):
     """FLRW Cosmology API wrapper for CAMB cosmologies."""
 
     @property
