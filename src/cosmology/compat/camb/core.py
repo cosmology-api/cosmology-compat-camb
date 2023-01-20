@@ -43,8 +43,8 @@ class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
         else:
             params = self.cosmo.Params
 
-        self.params: camb.CAMBparams
-        object.__setattr__(self, "params", params)
+        self._params: camb.CAMBparams
+        object.__setattr__(self, "_params", params)
 
     def __cosmology_namespace__(
         self,
@@ -71,6 +71,6 @@ class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
         `CosmologyAPINamespace`
             An object representing the CAMB cosmology API namespace.
         """
-        import cosmology.compat.camb as namespace  # type: ignore[import]
+        import cosmology.compat.camb as namespace
 
         return cast("CosmologyAPINamespace", namespace)

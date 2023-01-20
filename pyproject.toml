@@ -25,6 +25,7 @@
     "cosmology.api @ git+https://github.com/python-cosmology/cosmology-api.git",
     "camb",
     "numpy>=1.20",
+    "typing_extensions>=3.7.4.2",
   ]
 
 [project.optional-dependencies]
@@ -98,25 +99,12 @@ where = ["src"]
   ]
 
 
-[tool.isort]
-  profile = "black"
-  include_trailing_comma = "True"
-  use_parentheses = "True"
-  ensure_newline_before_comments = "True"
-  known_localfolder = [
-    "cosmology.core",
-  ]
-  known_third_party = ["numpy", "pytest"]
-  import_heading_stdlib = "STDLIB"
-  import_heading_firstparty = "FIRST-PARTY"
-  import_heading_thirdparty = "THIRD-PARTY"
-  import_heading_localfolder = "LOCAL"
-
-
 [tool.mypy]
+  python_version = 3.9
+
   namespace_packages = true
   explicit_package_bases = true
-  python_version = 3.9
+  mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
 
   strict = true
   disallow_subclassing_any = false
@@ -155,6 +143,7 @@ ignore = [
   "ARG001", "ARG002",
   "D105", "D107", "D203", "D213", "D401",
   "FBT003",
+  "N802",
   "PD",
   "RET505", "RET506", "RET507",
 ]
