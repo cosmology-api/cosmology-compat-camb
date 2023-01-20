@@ -22,7 +22,7 @@
     "Programming Language :: Python :: 3",
   ]
   dependencies = [
-    "cosmology.api @ git+https://github.com/python-cosmology/cosmology-api.git",
+    "cosmology.api @ git+https://github.com/python-cosmology/cosmology-api.git@simpler-array-type",
     "camb",
     "numpy>=1.20",
     "typing_extensions>=3.7.4.2",
