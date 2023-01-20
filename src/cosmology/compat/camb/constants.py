@@ -10,10 +10,7 @@ From the :mod:`cosmology.api`, the list of required constants is:
 
 from camb.constants import c as c_ms
 
-__all__ = ["G"]
+__all__ = ["c", "G"]
 
 c = c_ms / 1e3  # [km s-1]
-
-
 G = 4.30091727003628e-3  # [pc km2 s-2 Msol-1]  CODATA 2018 value
-speed_of_light = 299792.458  # [km s-1]  CODATA 2018 value

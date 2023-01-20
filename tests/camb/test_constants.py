@@ -5,5 +5,5 @@ from cosmology.compat.camb import constants
 
 
 def test_namespace_is_compliant():
-    """Test :mod:`cosmology.compat.astropy.constants`."""
+    """Test :mod:`cosmology.compat.camb.constants`."""
     assert isinstance(constants, CosmologyConstantsAPINamespace)

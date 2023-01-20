@@ -26,13 +26,7 @@ _MPCGYR_KMS = np.array("9.7309928209912e35", dtype=np.float64)  # [Mpc / km]
 
 @dataclass(frozen=True)
 class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
-    """Cosmology API Protocol for FLRW-like cosmologies.
-
-    This is a protocol class that defines the standard API for FLRW-like
-    cosmologies. It is not intended to be instantiaed. Instead, it should be
-    used for ``isinstance`` checks or as an ABC for libraries that wish to
-    define a compatible cosmology class.
-    """
+    """FLRW Cosmology API wrapper for CAMB cosmologies."""
 
     @property
     def H0(self) -> NDFloating:
@@ -106,12 +100,15 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
             \Omega_{\rm tot} = \Omega_{\rm m} + \Omega_{\rm \gamma} +
             \Omega_{\rm \nu} + \Omega_{\rm de} + \Omega_{\rm k}
         """
-        raise NotImplementedError  # TODO!
+        return (  # TODO: this is a hack, but it works for now.
+            self.cosmo.get_background_densities(1, ["tot"], format="array")[:, 0]
+            / self.rho_critical0
+        )
 
     @property
     def Odm0(self) -> NDFloating:
         """Omega dark matter; dark matter density/critical density at z=0."""
-        raise NotImplementedError  # TODO!
+        return np.asarray(self._params.omegac)
 
     @property
     def Ok0(self) -> NDFloating:
@@ -121,7 +118,7 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
     @property
     def Ogamma0(self) -> NDFloating:
         """Omega gamma; the density/critical density of photons at z=0."""
-        raise NotImplementedError  # TODO!
+        return np.asarray(self.cosmo.get_Omega("photon", z=0))
 
     @property
     def Onu0(self) -> NDFloating:
@@ -141,41 +138,57 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
     @property
     def rho_tot0(self) -> NDFloating:
         """Total density at z = 0 in Msol Mpc-3."""
-        raise NotImplementedError  # TODO!
+        return self.cosmo.get_background_densities(1, ["tot"], format="array")[:, 0] / (
+            8 * np.pi * constants.G
+        )
 
     @property
     def rho_m0(self) -> NDFloating:
         """Matter density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["cdm", "baryon"],
+        # format="array").sum(axis=1) / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Om0
 
     @property
     def rho_de0(self) -> NDFloating:
         """Dark energy density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["de"],
+        # format="array")[:, 0] / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Ode0
 
     @property
     def rho_b0(self) -> NDFloating:
         """Baryon density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["baryon"],
+        # format="array")[:, 0] / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Ob0
 
     @property
     def rho_dm0(self) -> NDFloating:
         """Dark matter density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["cdm"],
+        # format="array")[:, 0] / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Odm0
 
     @property
     def rho_k0(self) -> NDFloating:
         """Curvature density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["K"],
+        # format="array")[:, 0] / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Ok0
 
     @property
     def rho_gamma0(self) -> NDFloating:
         """Radiation density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["photon"],
+        # format="array")[:, 0] / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Ogamma0
 
     @property
     def rho_nu0(self) -> NDFloating:
         """Neutrino density at z = 0 in Msol Mpc-3."""
+        # TODO: or self.cosmo.get_background_densities(1, ["neutrino", "nu"],
+        # format="array").sum(axis=1) / (8 * np.pi * constants.G)
         return self.rho_critical0 * self.Onu0
 
     # ==============================================================
@@ -216,9 +229,9 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
         """
         return self.cosmo.get_background_densities(
             self.scale_factor(z),
-            vars=["total"],
+            vars=["tot"],
             format="array",
-        )[:, 0]
+        )[:, 0] / (8 * np.pi * constants.G * self.scale_factor(z) ** 4)
 
     def Om(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent non-relativistic matter density parameter.
@@ -263,61 +276,106 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
 
     def Ode(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent dark energy density parameter."""
-        ...
+        return np.asarray(self.cosmo.get_Omega("de", z))
 
     def Ogamma(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent photon density parameter."""
-        ...
+        return np.asarray(self.cosmo.get_Omega("photon", z))
 
     def Onu(self, z: NDFloating, /) -> NDFloating:
-        r"""Redshift-dependent neutrino density parameter.
-
-        The energy density of neutrinos relative to the critical density at each
-        redshift. Note that this includes their kinetic energy (if
-        they have mass), so it is not equal to the commonly used :math:`\sum
-        \frac{m_{\nu}}{94 eV}`, which does not include kinetic energy.
-        Returns `float` if the input is scalar.
-        """
-        ...
+        r"""Redshift-dependent neutrino density parameter."""
+        return np.asarray(
+            self.cosmo.get_Omega("neutrino", z) + self.cosmo.get_Omega("nu", z),
+        )
 
     # ----------------------------------------------
     # Rho
 
     def rho_critical(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent critical density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["tot"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     def rho_tot(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent total density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["tot"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     def rho_m(self, z: NDFloating, /) -> NDFloating:
-        """Redshift-dependent matter density in Msol Mpc-3."""
-        ...
+        """Redshift-dependent matter density in Msol Mpc-3.
+
+        Notes
+        -----
+        This does not include neutrinos, even if non-relativistic at the
+        redshift of interest; see `rho_nu`.
+        """
+        a = self.scale_factor(z)
+        return np.sum(
+            self.cosmo.get_background_densities(
+                a,
+                vars=["cdm", "baryon"],
+                format="array",
+            ),
+            axis=1,
+        ) / (8 * np.pi * constants.G * a**4)
 
     def rho_de(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent dark energy density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["de"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     def rho_k(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent curvature density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["K"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     def rho_gamma(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent photon density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["photon"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     def rho_nu(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent neutrino density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return np.sum(
+            self.cosmo.get_background_densities(
+                a,
+                vars=["neutrino", "nu"],
+                format="array",
+            ),
+            axis=1,
+        ) / (8 * np.pi * constants.G * a**4)
 
     def rho_b(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent baryon density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["baryon"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     def rho_dm(self, z: NDFloating, /) -> NDFloating:
         """Redshift-dependent dark matter density in Msol Mpc-3."""
-        ...
+        a = self.scale_factor(z)
+        return self.cosmo.get_background_densities(a, vars=["cdm"], format="array")[
+            :,
+            0,
+        ] / (8 * np.pi * constants.G * a**4)
 
     # ----------------------------------------------
     # Time
@@ -355,7 +413,7 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
         the comoving distance if :math:`\Omega_k` is zero (as in the current
         concordance Lambda-CDM model).
         """
-        raise NotImplementedError  # TODO
+        return self.angular_diameter_distance(z) * (z + 1)
 
     def comoving_volume(self, z: NDFloating, /) -> NDFloating:
         r"""Comoving volume in cubic Mpc.
@@ -364,7 +422,19 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
         ``z``. For the case of :math:`\Omega_k = 0` it is a sphere of radius
         `comoving_distance` but it is less intuitive if :math:`\Omega_k` is not.
         """
-        raise NotImplementedError  # TODO
+        if self.Ok0 == 0:
+            return 4.0 / 3.0 * np.pi * self.comoving_distance(z) ** 3
+
+        dh = self.hubble_distance
+        x = self.comoving_transverse_distance(z) / dh
+        term1 = 4.0 * np.pi * dh**3 / (2.0 * self.Ok0)
+        term2 = x * np.sqrt(1 + self.Ok0 * (x) ** 2)
+        term3 = np.sqrt(np.abs(self.Ok0)) * x
+
+        if self.Ok0 > 0:
+            return term1 * (term2 - 1.0 / np.sqrt(np.abs(self.Ok0)) * np.arcsinh(term3))
+        else:
+            return term1 * (term2 - 1.0 / np.sqrt(np.abs(self.Ok0)) * np.arcsin(term3))
 
     def differential_comoving_volume(self, z: NDFloating, /) -> NDFloating:
         r"""Differential comoving volume in cubic Mpc per steradian.
@@ -380,7 +450,9 @@ class CAMBFLRW(CAMBCosmology, FLRWAPIConformantWrapper):
             = \frac{\mathtt{xm(z)^2}}{\mathtt{ef(z)}} \;.
 
         """
-        raise NotImplementedError  # TODO
+        return (
+            self.comoving_transverse_distance(z) / self.hubble_distance
+        ) ** 2 / self.efunc(z)
 
     # ----------------------------------------------
     # Angular diameter distance
