@@ -22,7 +22,7 @@
     "Programming Language :: Python :: 3",
   ]
   dependencies = [
-    "cosmology.api @ git+https://github.com/python-cosmology/cosmology-api.git",
+    "cosmology.api @ git+https://github.com/cosmology-api/cosmology-api.git",
     "camb>=1.1.0",
     "numpy>=1.20",
     "typing_extensions>=3.7.4.2",
@@ -150,3 +150,10 @@ ignore = [
 
 [tool.ruff.per-file-ignores]
 "test_*.py" = ["ANN", "D", "S101"]
+
+[tool.ruff.isort]
+known-third-party = [
+  "camb",
+  "numpy",
+]
+known-first-party = ["cosmology"]

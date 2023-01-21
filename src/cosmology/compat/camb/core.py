@@ -5,17 +5,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
-from cosmology.api import CosmologyAPINamespace, CosmologyWrapperAPI
+import camb
 from numpy import floating
 from numpy.typing import NDArray
+from typing_extensions import TypeAlias
 
-import camb
+from cosmology.api import CosmologyAPINamespace, CosmologyWrapperAPI
 
 __all__: list[str] = []
 
+##############################################################################
+# PARAMETERS
+
+NDFloating: TypeAlias = NDArray[floating[Any]]
+
+
+##############################################################################
+
 
 @dataclass(frozen=True)
-class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
+class CAMBCosmology(CosmologyWrapperAPI[NDFloating]):
     """The Cosmology API wrapper for :mod:`camb`."""
 
     cosmo: camb.CAMBdata
