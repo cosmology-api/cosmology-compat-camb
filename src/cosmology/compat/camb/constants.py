@@ -1,6 +1,4 @@
-"""Astropy cosmology constants.
-
-Note that :mod:`astropy` constants have astropy units.
+"""CAMB cosmology constants.
 
 From the :mod:`cosmology.api`, the list of required constants is:
 

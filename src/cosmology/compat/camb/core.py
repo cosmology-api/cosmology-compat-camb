@@ -37,13 +37,13 @@ class CAMBCosmology(CosmologyWrapperAPI[NDFloating]):
         the type of ``self.cosmo`` must be ``CAMBdata`` at object creation
         and cannot be later processed here.
         """
-        if not isinstance(self.cosmo, (camb.CAMBdata, camb.CAMBParams)):
+        if not isinstance(self.cosmo, (camb.CAMBdata, camb.CAMBparams)):
             msg = (
                 "cosmo must be a CAMBdata or CAMBParams instance, "
                 f"not {type(self.cosmo)}"
             )
             raise TypeError(msg)
-        elif isinstance(self.cosmo, camb.CAMBParams):
+        elif isinstance(self.cosmo, camb.CAMBparams):
             cosmo = camb.get_background(self.cosmo)
             params = self.cosmo
 
