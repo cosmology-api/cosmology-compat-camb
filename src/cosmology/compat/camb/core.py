@@ -5,17 +5,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
-from cosmology.api import CosmologyAPINamespace, CosmologyWrapperAPI
+import camb
 from numpy import floating
 from numpy.typing import NDArray
+from typing_extensions import TypeAlias
 
-import camb
+from cosmology.api import CosmologyAPINamespace, CosmologyWrapperAPI
 
 __all__: list[str] = []
 
+##############################################################################
+# PARAMETERS
+
+NDFloating: TypeAlias = NDArray[floating[Any]]
+
+
+##############################################################################
+
 
 @dataclass(frozen=True)
-class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
+class CAMBCosmology(CosmologyWrapperAPI[NDFloating]):
     """The Cosmology API wrapper for :mod:`camb`."""
 
     cosmo: camb.CAMBdata
@@ -28,13 +37,13 @@ class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
         the type of ``self.cosmo`` must be ``CAMBdata`` at object creation
         and cannot be later processed here.
         """
-        if not isinstance(self.cosmo, (camb.CAMBdata, camb.CAMBParams)):
+        if not isinstance(self.cosmo, (camb.CAMBdata, camb.CAMBparams)):
             msg = (
                 "cosmo must be a CAMBdata or CAMBParams instance, "
                 f"not {type(self.cosmo)}"
             )
             raise TypeError(msg)
-        elif isinstance(self.cosmo, camb.CAMBParams):
+        elif isinstance(self.cosmo, camb.CAMBparams):
             cosmo = camb.get_background(self.cosmo)
             params = self.cosmo
 
@@ -43,8 +52,8 @@ class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
         else:
             params = self.cosmo.Params
 
-        self.params: camb.CAMBparams
-        object.__setattr__(self, "params", params)
+        self._params: camb.CAMBparams
+        object.__setattr__(self, "_params", params)
 
     def __cosmology_namespace__(
         self,
@@ -71,6 +80,6 @@ class CAMBCosmology(CosmologyWrapperAPI[NDArray[floating[Any]]]):
         `CosmologyAPINamespace`
             An object representing the CAMB cosmology API namespace.
         """
-        import cosmology.compat.camb as namespace  # type: ignore[import]
+        import cosmology.compat.camb as namespace
 
         return cast(CosmologyAPINamespace, namespace)

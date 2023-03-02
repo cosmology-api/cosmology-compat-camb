@@ -55,7 +55,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [
-          "git+https://github.com/python-cosmology/cosmology-api.git#egg=cosmology-api"
+          "git+https://github.com/cosmology-api/cosmology-api.git#egg=cosmology-api"
         ]
         args:
           - --strict

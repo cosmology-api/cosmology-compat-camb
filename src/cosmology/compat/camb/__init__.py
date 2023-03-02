@@ -13,12 +13,16 @@ There are the following required objects for a Cosmology-API compatible library:
   :mod:`cosmology.compat.camb.constants` for details.
 """
 
-from . import constants
-from .core import CAMBCosmology
+from cosmology.compat.camb import constants
+from cosmology.compat.camb.background import CAMBBackgroundCosmology
+from cosmology.compat.camb.core import CAMBCosmology
+from cosmology.compat.camb.standard import CAMBStandardCosmology
 
 __all__ = [
     # Cosmology API
     "constants",
     # Wrappers
     "CAMBCosmology",
+    "CAMBBackgroundCosmology",
+    "CAMBStandardCosmology",
 ]
